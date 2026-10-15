@@ -1,0 +1,6 @@
+{
+  "name": "fakturacie", "private": true, "type": "module",
+  "scripts": {"build": "node bin/build.mjs", "test": "node --test tests/*.test.mjs"},
+  "dependencies": {"bootstrap": "^5.3.8"},
+  "devDependencies": {"sass": "^1.93.0", "esbuild": "^0.25.10", "@axe-core/playwright": "^4.10.2"}
+}

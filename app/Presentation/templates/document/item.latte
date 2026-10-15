@@ -1,0 +1,8 @@
+<tr class="invoice-item">
+<td class="document-description">{include 'field.latte', interactive:$interactive, type:'textarea', id:'item-' . $i . '-description', itemField:'description', label:'Popis položky, položka ' . ($i+1), value:$item['description'], display:$item['description'], required:true, placeholder:'Za čo fakturuješ?'}</td>
+<td class="document-numeric">{include 'field.latte', interactive:$interactive, type:'decimal', id:'item-' . $i . '-quantity', itemField:'quantity', label:'Množstvo, položka ' . ($i+1), value:$item['quantity'], display:str_replace('.', ',', rtrim(rtrim($item['quantity'], '0'), '.')), required:true}</td>
+<td>{include 'field.latte', interactive:$interactive, type:'text', id:'item-' . $i . '-unit', itemField:'unit', label:'MJ, položka ' . ($i+1), value:$item['unit'], display:$item['unit'], required:true, maxlength:12}</td>
+<td class="document-numeric">{include 'field.latte', interactive:$interactive, type:'decimal', id:'item-' . $i . '-unitPrice', itemField:'unitPrice', label:'Cena bez DPH, položka ' . ($i+1), value:$item['unitPrice'], display:App\Domain\Rules::money((int) round((float) $item['unitPrice'] * 100)), required:true}</td>
+<td class="document-numeric">{include 'field.latte', interactive:$interactive, type:'select', id:'item-' . $i . '-vatRate', itemField:'vatRate', label:'DPH %, položka ' . ($i+1), value:$item['vatRate'], display:$item['vatRate'] . ' %'}</td>
+<td class="document-numeric document-line-end"><span data-line-total>{$lineNet|money}</span><button n:if="$interactive" type="button" class="document-remove invoice-item__remove" aria-label="Odstrániť položku {$i+1}">×</button></td>
+</tr>

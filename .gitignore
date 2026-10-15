@@ -1,0 +1,51 @@
+# Dependencies and generated frontend assets
+/vendor/
+/node_modules/
+/public/assets/
+
+# Private application data, invoices, exports, backups and test artefacts
+/data/
+/storage/
+/output/
+/temp/
+/tmp/
+/log/
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.pdf
+*.eml
+*.log
+*.bak
+*.backup
+
+# Environment, local configuration and credentials
+.env*
+!.env.example
+/config/local.neon
+/config/*.local.neon
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.yml
+auth.json
+.npmrc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.htpasswd
+id_rsa*
+id_ed25519*
+
+# Editor, OS and agent-local files
+.DS_Store
+._*
+.idea/
+.vscode/
+.agents/
+.codex/

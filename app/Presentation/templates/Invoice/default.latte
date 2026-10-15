@@ -1,0 +1,53 @@
+{block content}
+<div class="editor-toolbar d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
+<div><a n:href="Home:default" class="small text-decoration-none text-secondary">← Všetky faktúry</a><h1 class="h3 mt-2 mb-1" id="editor-heading">{$invoice['number'] ? 'Faktúra ' . $invoice['number'] : 'Nová faktúra'}</h1><p class="small text-secondary mb-0" id="save-status" role="status">{if $invoice['status'] === 'draft'}Koncept · zmeny sa ukladajú automaticky{elseif $editing}Úprava vystavenej faktúry · zmeny potvrď uložením{else}Vystavená · uložené PDF{/if}</p></div>
+<div class="invoice-actions d-flex align-items-center gap-2 flex-wrap" id="editor-actions" role="group" aria-label="Akcie faktúry">
+{if $invoice['status'] === 'issued'}
+{if $editing}
+<a n:href="default $invoice['id'], edit: null" class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2">{include '../ui/icon.latte', name:'close'}Zrušiť úpravy</a>
+<button type="button" class="btn btn-sm btn-primary invoice-actions__primary d-inline-flex align-items-center justify-content-center gap-2" id="save-invoice">{include '../ui/icon.latte', name:'save'}Uložiť zmeny</button>
+{else}
+<button type="button" class="btn btn-sm btn-primary invoice-actions__primary d-inline-flex align-items-center justify-content-center gap-2" id="open-email">{include '../ui/icon.latte', name:'mail'}Poslať e-mailom</button>
+<a n:href="default $invoice['id'], edit: true" class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2" aria-label="Upraviť faktúru">{include '../ui/icon.latte', name:'edit'}Upraviť</a>
+<a n:href="pdf $invoice['id'], download: 1" class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2" aria-label="Stiahnuť PDF">{include '../ui/icon.latte', name:'download'}PDF</a>
+{/if}
+{else}
+<button type="button" class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2" id="save-invoice">{include '../ui/icon.latte', name:'save'}Uložiť koncept</button>
+<button type="button" class="btn btn-sm btn-primary invoice-actions__primary d-inline-flex align-items-center justify-content-center gap-2" id="issue-invoice">{include '../ui/icon.latte', name:'check'}Vystaviť a stiahnuť PDF</button>
+{/if}
+<div class="dropdown invoice-actions__more">
+<button type="button" class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2 w-100" id="invoice-more" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-controls="invoice-more-actions">{include '../ui/icon.latte', name:'more'}Ďalšie<span class="visually-hidden"> akcie faktúry</span></button>
+<ul class="dropdown-menu dropdown-menu-end shadow-sm" id="invoice-more-actions" aria-labelledby="invoice-more">
+{if $invoice['status'] === 'issued' && !$editing}
+<li><button type="button" class="dropdown-item d-flex align-items-center gap-2" id="copy-invoice">{include '../ui/icon.latte', name:'copy'}Vytvoriť kópiu</button></li>
+<li><hr class="dropdown-divider"></li>
+{/if}
+<li><button type="button" class="dropdown-item text-danger d-flex align-items-center gap-2" id="delete-invoice">{include '../ui/icon.latte', name:'trash'}Vymazať faktúru</button></li>
+</ul>
+</div>
+</div></div>
+<div id="editor-error" class="alert alert-danger" role="alert" hidden></div>
+<div class="row g-4 align-items-start"><div class="col-xl-9">
+<div class="d-flex justify-content-between align-items-center gap-3 mb-2"><p class="small text-secondary mb-0">{if $editing}Rovnaká šablóna ako PDF · klikni na text a uprav ho.{else}Vystavená faktúra · môžeš ju upraviť alebo vymazať.{/if}</p><button type="button" id="zoom-document" class="btn btn-sm btn-light border d-lg-none" aria-pressed="false">Priblížiť</button></div>
+<div class="sheet-stage"><form id="invoice-form" class="invoice-sheet" autocomplete="off">
+{include '../document/invoice.latte', invoice:$invoice, interactive:$editing, qrImages:($editing ? [] : $qrImages)}
+<div class="document-footer invoice-sheet__footer">{$invoice['supplier']['name']} · {$invoice['number'] ? 'Faktúra ' . $invoice['number'] : 'KONCEPT'}</div>
+</form></div>
+<template id="item-template">{include '../document/item.latte', interactive:true, i:0, item:['description'=>'','quantity'=>'1.000','unit'=>'ks','unitPrice'=>'0.00','vatRate'=>23], lineNet:0}</template>
+</div>
+<aside class="col-xl-3" aria-label="Možnosti faktúry"><div class="editor-options"><h2 class="h6 fw-semibold mb-3">Platobný QR kód</h2><p class="small text-secondary">{if $editing}Vyber formát podľa banky zákazníka. Do PDF môžeš pridať najviac dva.{else}Formáty zahrnuté vo vystavenej faktúre.{/if}</p>
+<fieldset id="qr-options"><legend class="visually-hidden">QR formáty</legend>
+<div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="sk" id="qr-sk"><label class="form-check-label" for="qr-sk">PAY by square<span class="d-block small text-secondary">Slovenské banky</span></label></div>
+<div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="cz" id="qr-cz"><label class="form-check-label" for="qr-cz">QR Platba<span class="d-block small text-secondary">Český formát SPAYD</span></label></div>
+<div class="form-check mb-3"><input class="form-check-input" type="checkbox" value="epc" id="qr-epc"><label class="form-check-label" for="qr-epc">SEPA QR<span class="d-block small text-secondary">Európsky formát EPC · EUR</span></label></div>
+</fieldset>
+<p class="small text-secondary border-top pt-3">Podpora závisí od bankovej aplikácie. Pri českom QR over podporu platby v EUR na slovenský IBAN. Revolut a Wise nemajú v tejto aplikácii overenú podporu týchto formátov.</p>
+{if $invoice['status'] === 'draft'}<p class="small text-secondary">Platobný kód vznikne pri vystavení faktúry, keď bude známe jej číslo.</p><button class="btn btn-light border w-100 mb-2" id="preview-pdf">Náhľad konceptu v PDF ↗</button>{elseif $editing}<p class="small text-secondary">Uložením sa zachová číslo faktúry a obnoví sa PDF aj platobný QR kód.</p>{/if}
+</div></aside></div>
+<dialog id="customer-picker" class="app-dialog border-0 rounded-3 p-4" aria-labelledby="picker-title"><div class="d-flex justify-content-between gap-3 align-items-center mb-3"><h2 class="h4 mb-0" id="picker-title">Vybrať zákazníka</h2><button class="btn btn-light btn-sm" data-close-dialog>Zavrieť</button></div><label class="visually-hidden" for="picker-search">Hľadať v zákazníkoch</label><input id="picker-search" type="search" class="form-control mb-3" placeholder="Názov firmy alebo IČO…"><div id="picker-results" class="mb-3"></div><button class="btn btn-outline-primary w-100" id="picker-add">+ Nový zákazník</button></dialog>
+<section class="mt-4" aria-labelledby="email-history-title"><h2 class="h5 mb-3" id="email-history-title">Odoslania e-mailom</h2><div id="email-history" class="list-group">
+{foreach $deliveries as $delivery}<div class="list-group-item"><p class="mb-1 fw-semibold">{if $delivery['status'] === 'sent'}SMTP server prijal správu{elseif $delivery['status'] === 'sending'}Odoslanie prebieha alebo sa nepotvrdilo{else}Odoslanie sa nepotvrdilo{/if}</p><p class="small mb-0 text-secondary">{$delivery['recipient']} · {$delivery['created_at']|date:'d.m.Y H:i'} · {$delivery['subject']} · verzia {$delivery['invoice_version']}</p></div>{/foreach}
+<p class="text-secondary small mb-0" id="email-history-empty" n:if="!$deliveries">Táto faktúra ešte nemá zaznamenané odoslanie.</p></div></section>
+{include '../email-dialog.latte'}
+{include '../customer-dialog.latte'}
+{/block}

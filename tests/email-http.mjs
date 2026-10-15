@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import {writeFile} from 'node:fs/promises';
+import {supplier} from './fixtures.mjs';
+const base=process.env.TEST_URL || 'http://127.0.0.1:8874';
+const catcher=process.env.MAILPIT_URL || 'http://127.0.0.1:8026';
+if(!base.endsWith(':8874') || catcher!=='http://127.0.0.1:8026') throw new Error('Only isolated invoice and Mailpit ports are allowed.');
+let cookies=new Map(),token,checks=0;
+const check=(yes,label)=>{assert.ok(yes,label);console.log('PASS '+label);checks++;};
+async function get(path) {
+ const r=await fetch(base+path,{headers:{Cookie:[...cookies].map(([k,v])=>`${k}=${v}`).join('; ')}});
+ for(const c of r.headers.getSetCookie()){const p=c.split(';')[0],i=p.indexOf('=');cookies.set(p.slice(0,i),p.slice(i+1));}
+ return r;
+}
+async function page(path) {const r=await get(path);const html=await r.text();assert.equal(r.status,200);token=html.match(/name="csrf-token" content="([^"]+)"/)[1];return {html,boot:JSON.parse(html.match(/id="app-data">([\s\S]*?)<\/script>/)[1])};}
+async function post(name,data,headers={}) {const r=await fetch(base+'/api/'+name,{method:'POST',headers:{Cookie:[...cookies].map(([k,v])=>`${k}=${v}`).join('; '),'Content-Type':'application/json','X-CSRF-Token':token,Origin:base,...headers},body:JSON.stringify(data)});return {status:r.status,...await r.json()};}
+const randomKey=()=>crypto.randomBytes?crypto.randomBytes(16).toString('hex'):crypto.randomUUID().replaceAll('-','');
+const messages=async()=>{const r=await fetch(catcher+'/api/v1/messages?limit=100');assert.equal(r.status,200);return (await r.json()).messages;};
+const initialCount=(await messages()).length;
+let {boot,html}=await page('/nastavenia');
+assert.ok((await post('settings-save',{...supplier,version:boot.supplier.version})).ok);
+check(html.includes('id="smtp-form"') && html.includes('id="smtp-test-form"'),'Real SMTP settings and test forms render');
+let smtpInput={host:'mailpit',port:1025,encryption:'none',username:'',password:'smtp-secret-fixture',fromEmail:'billing@example.test',fromName:'Test Fakturácie',replyTo:'reply@example.test',version:boot.smtp.version};
+check((await post('smtp-save',smtpInput,{'X-CSRF-Token':''})).status===403,'SMTP save requires CSRF');
+let config=await post('smtp-save',smtpInput);check(config.ok && config.data.passwordSet && !('password' in config.data),'SMTP credentials saved without echoing password');
+({boot,html}=await page('/nastavenia'));check(!html.includes('smtp-secret-fixture') && !('password' in boot.smtp),'Password absent from HTML and boot JSON');
+check((await post('smtp-save',smtpInput)).status===409,'Stale SMTP edit rejected');
+let probe={to:'smtp-test@example.test',smtpVersion:config.data.version,requestKey:randomKey()};
+const test=await post('smtp-test',probe);check(test.ok && test.data.status==='sent','SMTP probe accepted by actual Mailpit');
+check((await post('smtp-test',probe)).data.id===test.data.id && (await messages()).length===initialCount+1,'SMTP probe retry does not send twice');
+({boot}=await page('/faktury/nova'));
+const customer=await post('customer-save',{name:'Mailpit fixture',street:'Testovacia 1',zip:'01001',city:'Žilina',country:'Slovensko',email:'customer@example.test',paymentDays:14,qrProfile:'sk'});assert.ok(customer.ok);
+let draft=await post('invoice-save',{...boot.invoice,customerId:customer.data.id,items:[{description:'Test e-mailovej faktúry',quantity:'2.5',unit:'hod',unitPrice:'42.10',vatRate:23}],qrProfiles:['sk','epc']});
+check((await post('invoice-email-preview',{id:draft.data.id,version:draft.data.version})).status===422,'Draft cannot be sent with incomplete payment reference');
+let invoice=await post('invoice-issue',{id:draft.data.id,version:draft.data.version});assert.ok(invoice.ok);
+const preview=await post('invoice-email-preview',{id:invoice.data.id,version:invoice.data.version});
+check(preview.ok && preview.data.to==='customer@example.test' && preview.data.qrImages.length===2 && preview.data.attachment===`Faktura_${invoice.data.number}.pdf`,'Composer uses customer recipient, selected QR and PDF filename');
+const originalPdf=Buffer.from(await(await get(`/faktury/${invoice.data.id}/pdf`)).arrayBuffer());
+const payload={id:invoice.data.id,version:invoice.data.version,smtpVersion:preview.data.smtpVersion,requestKey:preview.data.requestKey,to:'custom-recipient@example.test',subject:`Mailpit faktúra ${invoice.data.number}`,message:'Dobrý deň,\nToto je upravený text správy. <script>alert(1)</script>'};
+const [sent,replayed]=await Promise.all([post('invoice-email-send',payload),post('invoice-email-send',payload)]);
+check(sent.ok && replayed.ok && sent.data.id===replayed.data.id,'Concurrent send requests share one delivery record');
+const confirmed=await post('invoice-email-send',payload);check(confirmed.data.status==='sent' && (await messages()).length===initialCount+2,'Exactly one invoice reached Mailpit');
+check((await post('invoice-email-send',{...payload,to:'other@example.test'})).status===409,'Same request key cannot send a different message');
+const list=await messages(),captured=list.find(m=>m.Subject===payload.subject);assert.ok(captured);
+const detail=await(await fetch(`${catcher}/api/v1/message/${captured.ID}`)).json();
+check(detail.To[0].Address===payload.to && detail.From.Address==='billing@example.test' && detail.ReplyTo[0].Address==='reply@example.test','SMTP recipient, From and Reply-To are correct');
+check(detail.HTML.includes('129,46') && detail.HTML.includes(invoice.data.number) && detail.HTML.includes(invoice.data.supplier.iban.match(/.{1,4}/g).join(' ')) && detail.HTML.includes('Toto je upravený text'),'HTML includes edited message and full payment data');
+check(!detail.HTML.includes('<script>') && detail.HTML.includes('&lt;script&gt;'),'HTML injection escaped in captured email');
+check(detail.Text.includes('129,46') && detail.Text.includes(invoice.data.supplier.iban) && detail.Text.includes(invoice.data.number),'Plain-text alternative includes payment details');
+const raw=Buffer.from(await(await fetch(`${catcher}/api/v1/message/${captured.ID}/raw`)).arrayBuffer());
+await writeFile('temp/verification/email-captured.eml',raw);await writeFile('temp/verification/email-attached-original.pdf',originalPdf);
+await writeFile('temp/verification/email-expectations.json',JSON.stringify({preview:preview.data,payload,mailpitId:captured.ID,invoiceId:invoice.data.id}));
+let changed=await post('invoice-save',{...invoice.data,note:'Updated after first email'});assert.ok(changed.ok);
+check((await post('invoice-email-send',{...payload,requestKey:randomKey()})).status===409,'Stale invoice preview cannot send altered PDF');
+check((await post('invoice-email-send',payload)).data.status==='sent','Known send can be reconciled after later invoice edit');
+config=await post('smtp-save',{...smtpInput,version:config.data.version,password:''});assert.ok(config.ok);
+check((await post('invoice-email-send',{...payload,version:changed.data.version,requestKey:randomKey()})).status===409,'Stale SMTP preview rejected');
+config=await post('smtp-save',{...smtpInput,version:config.data.version,port:1});assert.ok(config.ok);
+const failure={...payload,version:changed.data.version,smtpVersion:config.data.version,requestKey:randomKey()};
+const failed=await post('invoice-email-send',failure);check(failed.ok && failed.data.status==='unknown','SMTP connection failure is reported without claiming delivery');
+check((await post('invoice-email-send',failure)).data.id===failed.data.id && (await messages()).length===initialCount+2,'Unconfirmed delivery is never automatically resent');
+const history=(await page(`/faktury/${invoice.data.id}`)).html;check(history.includes('custom-recipient@example.test') && history.includes('Odoslanie sa nepotvrdilo'),'Delivery history records successful and unconfirmed attempts');
+config=await post('smtp-save',{...smtpInput,version:config.data.version,password:'',clearPassword:true});assert.ok(config.ok);
+await writeFile('temp/verification/email-ui-fixture.json',JSON.stringify({id:invoice.data.id,number:invoice.data.number,mailpitId:captured.ID}));
+console.log(`${checks} SMTP HTTP checks passed. Mailpit message ${captured.ID}; invoice fixture ${invoice.data.id}.`);

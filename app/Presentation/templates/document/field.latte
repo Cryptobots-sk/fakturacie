@@ -1,0 +1,8 @@
+{if $interactive}
+<span class="document-editable {if $type === 'textarea'}document-editable--multiline{/if}">
+<span class="document-editable__value" aria-hidden="true" data-display>{$display !== '' ? $display : ($placeholder ?? 'Doplniť…')}</span>
+{if $type === 'textarea'}<textarea class="document-editable__input" id="{$id}" name="{$name ?? null}" data-field="{$itemField ?? null}" aria-label="{$label}" maxlength="{$maxlength ?? 1000}" rows="1" placeholder="{$placeholder ?? ''}" required="{$required ?? false}">{$value}</textarea>
+{elseif $type === 'select'}<select class="document-editable__input" id="{$id}" data-field="{$itemField}" aria-label="{$label}">{foreach [0,5,19,23] as $rate}<option value="{$rate}" selected="{$rate === (int) $value}">{$rate} %</option>{/foreach}</select>
+{else}<input class="document-editable__input" id="{$id}" name="{$name ?? null}" data-field="{$itemField ?? null}" aria-label="{$label}" type="{$type === 'date' ? 'date' : 'text'}" inputmode="{$type === 'decimal' ? 'decimal' : null}" maxlength="{$maxlength ?? 80}" value="{$value}" required="{$required ?? false}">{/if}
+</span>
+{else}{$display|breakLines}{/if}

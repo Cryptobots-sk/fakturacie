@@ -1,0 +1,30 @@
+<div class="invoice-document">
+<h2 class="document-title">Faktúra {$invoice['number'] ?: '· koncept'}</h2>
+<table class="document-parties" role="presentation"><tr><td class="document-supplier"><p class="document-label">DODÁVATEĽ</p><h3 class="document-company">{$invoice['supplier']['name']}</h3>
+<p>{$invoice['supplier']['street']}<br>{$invoice['supplier']['zip']} {$invoice['supplier']['city']}<br>{$invoice['supplier']['country']}</p>
+<p>IČO: {$invoice['supplier']['ico']}<br>DIČ: {$invoice['supplier']['dic']}<br>IČ DPH: {$invoice['supplier']['vatId']}</p>
+</td><td class="document-customer"><p class="document-label">ODBERATEĽ</p><div id="{$interactive ? 'customer-details' : null}">
+{if $invoice['customer']}<h3 class="document-company">{$invoice['customer']['name']}</h3><p>{$invoice['customer']['street']}<br>{$invoice['customer']['zip']} {$invoice['customer']['city']}<br>{$invoice['customer']['country']}</p>
+<p n:if="$invoice['customer']['ico']">IČO: {$invoice['customer']['ico']}</p><p n:if="$invoice['customer']['dic']">DIČ: {$invoice['customer']['dic']}</p><p n:if="$invoice['customer']['vatId']">IČ DPH: {$invoice['customer']['vatId']}</p>
+{else}<p class="document-empty">Odberateľ nie je vybraný</p>{/if}</div>
+<button n:if="$interactive" type="button" class="document-customer__select" id="choose-customer" aria-label="Vybrať zákazníka"><span>Vybrať zákazníka</span></button>
+</td></tr></table>
+<table class="document-meta" role="presentation"><tr>
+{foreach ['issueDate'=>'Dátum vystavenia','deliveryDate'=>'Dátum dodania','dueDate'=>'Dátum splatnosti'] as $field=>$label}<td><span class="document-label">{$label}</span><br><b>{include 'field.latte', interactive:$interactive, type:'date', id:$field, name:$field, label:$label, value:$invoice[$field], display:($invoice[$field] ? (new DateTimeImmutable($invoice[$field]))->format('d.m.Y') : '—'), required:true}</b></td>{/foreach}
+</tr></table>
+<div class="document-order" n:if="$interactive || $invoice['orderNumber']"><span class="document-label">Objednávka: </span>{include 'field.latte', interactive:$interactive, type:'text', id:'orderNumber', name:'orderNumber', label:'Číslo objednávky', value:$invoice['orderNumber'], display:$invoice['orderNumber'], placeholder:'Doplniť číslo objednávky…'}</div>
+<table class="document-items"><thead><tr><th class="document-description" scope="col">Popis</th><th class="document-numeric document-quantity" scope="col">Množstvo</th><th class="document-unit" scope="col">MJ</th><th class="document-numeric document-price" scope="col">Cena bez DPH</th><th class="document-numeric document-tax" scope="col">DPH</th><th class="document-numeric document-line-end" scope="col">Spolu bez DPH</th></tr></thead><tbody id="{$interactive ? 'invoice-items' : null}">
+{foreach $invoice['items'] as $i => $item}{include 'item.latte', interactive:$interactive, i:$i, item:$item, lineNet:$invoice['totals']['lines'][$i]['net'] ?? 0}{/foreach}
+</tbody></table>
+<div class="document-add" n:if="$interactive"><button type="button" id="add-item" class="document-add__button">+ Pridať položku</button></div>
+<table class="document-summary"><thead><tr><th scope="col">DPH</th><th scope="col">Základ dane</th><th scope="col">Daň</th><th scope="col">Spolu</th></tr></thead><tbody id="{$interactive ? 'vat-summary' : null}">
+{foreach $invoice['totals']['groups'] as $group}<tr><td>{$group['rate']} %</td><td>{$group['net']|money}</td><td>{$group['vat']|money}</td><td>{$group['gross']|money}</td></tr>{/foreach}
+</tbody><tfoot><tr class="document-total"><td colspan="2">Celkom k úhrade</td><td colspan="2" id="{$interactive ? 'total-gross' : null}">{$invoice['totals']['gross']|money}</td></tr></tfoot></table>
+<table class="document-payment" role="presentation"><tr><td><p class="document-label">ÚHRADA BANKOVÝM PREVODOM · EUR</p><p class="document-iban">{implode(' ', str_split($invoice['supplier']['iban'], 4))}</p><p>BIC / SWIFT: {$invoice['supplier']['bic'] ?: '—'}</p><p>Variabilný symbol: <b>{$invoice['number'] ?: 'pridelí sa po vystavení'}</b></p><p n:if="$invoice['number']">Správa pre príjemcu: Faktura {$invoice['number']}</p></td>
+{foreach $qrImages as $image}<td class="document-qr"><img class="document-qr__image" width="151" height="151" src="{$image['dataUri']|nocheck}" alt="Platobný QR: {$image['label']}"><br><b>{$image['label']}</b></td>{/foreach}
+{if !$invoice['number']}{foreach $invoice['qrProfiles'] as $profile}<td class="document-qr" data-qr-placeholder><img class="document-qr__image" width="151" height="151" src="{App\Domain\QrService::placeholder()|nocheck}" alt="QR po vystavení"><br><b>{App\Domain\Rules::QR_LABELS[$profile]}</b></td>{/foreach}{/if}
+</tr></table>
+<p class="document-label" n:if="$qrImages || $invoice['qrProfiles']" id="qr-instruction">QR kód načítajte v bankovej aplikácii, ktorá podporuje uvedený formát.</p>
+<div class="document-note" n:if="$interactive || $invoice['note']">{include 'field.latte', interactive:$interactive, type:'textarea', id:'note', name:'note', label:'Poznámka na faktúre', value:$invoice['note'], display:$invoice['note'], maxlength:2000, placeholder:'Doplniť poznámku…'}</div>
+<p class="document-registry" n:if="$invoice['supplier']['registry']">{$invoice['supplier']['registry']}</p>
+</div>

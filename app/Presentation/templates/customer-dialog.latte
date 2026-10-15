@@ -1,0 +1,5 @@
+<dialog id="customer-dialog" class="app-dialog app-dialog--wide border-0 rounded-3 p-0" aria-labelledby="customer-dialog-title"><form id="customer-form" class="p-4"><div class="d-flex justify-content-between align-items-center gap-3 mb-4"><h2 class="h4 mb-0" id="customer-dialog-title">Nový zákazník</h2><button type="button" class="btn btn-light btn-sm" data-close-dialog>Zavrieť</button></div>
+{include 'party-fields.latte', prefix: 'customer'}
+<p id="customer-error" class="text-danger mt-3 mb-0" role="alert" hidden></p>
+<div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-light" data-close-dialog>Zrušiť</button><button class="btn btn-primary" type="submit">Uložiť zákazníka</button></div>
+</form></dialog>

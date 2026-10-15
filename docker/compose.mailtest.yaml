@@ -1,0 +1,38 @@
+services:
+  app:
+    image: fakturacie:email-test
+  mailpit:
+    image: axllent/mailpit:v1.27.4
+    ports:
+      - "127.0.0.1:8026:8025"
+    environment:
+      MP_MAX_MESSAGES: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
+  mailpit-tls:
+    profiles: [security-test]
+    image: axllent/mailpit:v1.27.4
+    ports:
+      - "127.0.0.1:8027:8025"
+    volumes:
+      - ./temp/mailpit-tls:/test:ro
+    environment:
+      MP_SMTP_TLS_CERT: /test/cert.pem
+      MP_SMTP_TLS_KEY: /test/key.pem
+      MP_SMTP_AUTH_FILE: /test/smtp.htpasswd
+      MP_SMTP_REQUIRE_STARTTLS: "true"
+  mailpit-ssl:
+    profiles: [security-test]
+    image: axllent/mailpit:v1.27.4
+    ports:
+      - "127.0.0.1:8028:8025"
+    volumes:
+      - ./temp/mailpit-tls:/test:ro
+    environment:
+      MP_SMTP_TLS_CERT: /test/cert.pem
+      MP_SMTP_TLS_KEY: /test/key.pem
+      MP_SMTP_AUTH_FILE: /test/smtp.htpasswd
+      MP_SMTP_REQUIRE_TLS: "true"

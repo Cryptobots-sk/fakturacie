@@ -1,0 +1,25 @@
+name: fakturacie
+services:
+  app:
+    image: fakturacie:local
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FAKTURACIE_PORT:-8873}:80"
+    volumes:
+      - data:/var/www/html/data
+    healthcheck:
+      test: ["CMD", "php", "/var/www/html/docker/healthcheck.php"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  data:

@@ -1,0 +1,38 @@
+/* Shared document rules: browser editor and mPDF. Physical dimensions are intentional. */
+.invoice-document { color:#243746; font-family:dejavusans, sans-serif; font-size:9pt; line-height:1.5; }
+.document-title { font-size:25pt; color:#17567b; margin:0 0 5mm; font-weight:bold; line-height:1.2; }
+.document-company { font-size:12pt; margin:0 0 2mm; font-weight:bold; line-height:1.25; }
+.invoice-document p { margin:0; }
+.document-label { color:#526779; font-size:8pt; }
+.document-parties { width:100%; border-collapse:collapse; margin:5mm 0 7mm; }
+.document-parties td { width:50%; vertical-align:top; padding:4mm; background:#f1f5f8; }
+.document-supplier { border-right:3mm solid white; }
+.document-meta { width:100%; border-collapse:collapse; margin:0 0 7mm; }
+.document-meta td { width:33.333%; vertical-align:top; padding:0; }
+.document-order { margin:0 0 3mm; }
+.document-items { width:100%; border-collapse:collapse; margin:0 0 6mm; table-layout:fixed; }
+.document-items th { background:#17567b; color:white; padding:3mm 2mm; text-align:left; font-size:8pt; font-weight:bold; }
+.document-items td { padding:3mm 2mm; border-bottom:.2mm solid #dce4eb; vertical-align:top; }
+.document-numeric { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.document-items th.document-numeric { text-align:right; }
+.document-description { width:35%; overflow-wrap:break-word; }
+.document-quantity { width:13%; }
+.document-unit { width:7%; }
+.document-price { width:17%; }
+.document-tax { width:9%; }
+.document-line-end { width:19%; }
+.document-summary { width:100%; border-collapse:collapse; margin:4mm 0; }
+.document-summary td, .document-summary th { padding:2mm; text-align:right; font-weight:normal; }
+.document-total td { background:#eaf2f8; color:#17567b; font-size:14pt; font-weight:bold; }
+.document-payment { width:100%; border-collapse:collapse; margin:9mm 0 0; }
+.document-payment td { vertical-align:top; padding:0; }
+.document-qr { text-align:center; width:43mm; font-size:7pt; }
+.document-qr__image { width:40mm; height:40mm; }
+.document-qr__placeholder { width:40mm; height:40mm; border:.2mm dashed #bccbd5; line-height:40mm; color:#526779; text-align:center; font-size:9pt; }
+.document-iban { font-size:11pt; font-weight:bold; letter-spacing:.15mm; }
+.document-note { margin-top:6mm; font-size:9pt; overflow-wrap:break-word; }
+.document-footer { color:#526779; font-size:7pt; text-align:center; }
+.document-registry { font-size:7pt; color:#526779; margin-top:7mm; }
+.document-parties td, .document-meta td, .document-items td, .document-summary td, .document-payment td {color:#243746;font-family:dejavusans,sans-serif;font-size:9pt;line-height:1.5;}
+.document-summary .document-total td {color:#17567b;font-size:14pt;font-weight:bold;}
+.document-payment .document-qr {font-size:7pt;}
