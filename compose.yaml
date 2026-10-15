@@ -2,7 +2,7 @@ name: fakturacie
 services:
   app:
     image: fakturacie:local
-    build:
+    build: # PHP 8.5 + Apache; základ obrazu je v Dockerfile.
       context: .
       target: runtime
     restart: unless-stopped

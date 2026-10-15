@@ -4,7 +4,7 @@ Osobná lokálna aplikácia v slovenčine. Adresár zákazníkov, úpravy priamo
 
 ## Spustenie cez Docker
 
-Aplikácia, PHP, Apache aj SQLite bežia v Docker Desktop. Na Macu nepotrebuješ PHP, Composer ani Node. Otvor **Spustit.command**, prípadne v priečinku projektu:
+Aplikácia, PHP 8.5, Apache aj SQLite bežia v Docker Desktop. PHP verziu určuje základ `php:8.5-apache-bookworm` v `Dockerfile`; `compose.yaml` z neho zostaví aplikačný obraz. Na Macu nepotrebuješ PHP, Composer ani Node. Otvor **Spustit.command**, prípadne v priečinku projektu:
 
 ```sh
 docker compose up -d --build --wait

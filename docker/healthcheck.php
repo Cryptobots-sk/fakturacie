@@ -12,7 +12,7 @@ try {
     $context = stream_context_create(['http' => ['timeout' => 5, 'header' => $headers]]);
     $body = @file_get_contents('http://127.0.0.1/', false, $context);
     if ($body === false || !str_contains($body, 'id="app-data"')) throw new RuntimeException('Application HTTP unavailable');
-    foreach ($http_response_header as $header) {
+    foreach (http_get_last_response_headers() ?? [] as $header) {
         if (preg_match('/^Set-Cookie: PHPSESSID=([a-zA-Z0-9,-]+);/i', $header, $matches)) {
             file_put_contents($cookieFile, $matches[1]);
             chmod($cookieFile, 0600);
