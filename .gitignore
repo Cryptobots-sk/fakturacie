@@ -2,6 +2,7 @@
 /vendor/
 /node_modules/
 /public/assets/
+/target/
 
 # Private application data, invoices, exports, backups and test artefacts
 /data/

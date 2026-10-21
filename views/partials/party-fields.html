@@ -1,0 +1,13 @@
+<div class="row g-3">
+<div class="col-12"><label class="form-label" for="{{ prefix }}-name">Názov firmy <span class="text-secondary">*</span></label><input class="form-control" id="{{ prefix }}-name" name="name" maxlength="70" required autocomplete="organization"></div>
+<div class="col-12"><label class="form-label" for="{{ prefix }}-street">Ulica a číslo *</label><input class="form-control" id="{{ prefix }}-street" name="street" maxlength="120" required autocomplete="street-address"></div>
+<div class="col-4"><label class="form-label" for="{{ prefix }}-zip">PSČ *</label><input class="form-control" id="{{ prefix }}-zip" name="zip" maxlength="20" required autocomplete="postal-code"></div>
+<div class="col-8"><label class="form-label" for="{{ prefix }}-city">Mesto *</label><input class="form-control" id="{{ prefix }}-city" name="city" maxlength="80" required autocomplete="address-level2"></div>
+<div class="col-12"><label class="form-label" for="{{ prefix }}-country">Krajina *</label><input class="form-control" id="{{ prefix }}-country" name="country" maxlength="70" required autocomplete="country-name"></div>
+<div class="col-sm-4"><label class="form-label" for="{{ prefix }}-ico">IČO</label><input class="form-control" id="{{ prefix }}-ico" name="ico" maxlength="30"></div>
+<div class="col-sm-4"><label class="form-label" for="{{ prefix }}-dic">DIČ</label><input class="form-control" id="{{ prefix }}-dic" name="dic" maxlength="30"></div>
+<div class="col-sm-4"><label class="form-label" for="{{ prefix }}-vatId">IČ DPH</label><input class="form-control" id="{{ prefix }}-vatId" name="vatId" maxlength="30"></div>
+<div class="col-12"><label class="form-label" for="{{ prefix }}-email">E-mail</label><input class="form-control" type="email" id="{{ prefix }}-email" name="email" maxlength="160" autocomplete="email"></div>
+<div class="col-sm-4"><label class="form-label" for="{{ prefix }}-paymentDays">Splatnosť (dni)</label><input class="form-control" type="number" min="0" max="365" id="{{ prefix }}-paymentDays" name="paymentDays" required value="14"></div>
+<div class="col-sm-8"><label class="form-label" for="{{ prefix }}-qrProfile">Predvolený QR kód</label><select class="form-select" id="{{ prefix }}-qrProfile" name="qrProfile"><option value="sk">PAY by square · Slovensko</option><option value="cz">QR Platba · Česko</option><option value="epc">SEPA QR · Európa</option></select></div>
+</div>

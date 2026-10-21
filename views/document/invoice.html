@@ -1,0 +1,31 @@
+{% from "document/field.html" import field %}
+<div class="invoice-document">
+<h2 class="document-title">Faktúra {{ invoice.number or '· koncept' }}</h2>
+<table class="document-parties" role="presentation"><tr><td class="document-supplier"><p class="document-label">DODÁVATEĽ</p><h3 class="document-company">{{ invoice.supplier.name }}</h3>
+<p>{{ invoice.supplier.street }}<br>{{ invoice.supplier.zip }} {{ invoice.supplier.city }}<br>{{ invoice.supplier.country }}</p>
+<p>IČO: {{ invoice.supplier.ico }}<br>DIČ: {{ invoice.supplier.dic }}<br>IČ DPH: {{ invoice.supplier.vatId }}</p>
+</td><td class="document-customer"><p class="document-label">ODBERATEĽ</p><div{% if interactive %} id="customer-details"{% endif %}>
+{% if invoice.customer %}<h3 class="document-company">{{ invoice.customer.name }}</h3><p>{{ invoice.customer.street }}<br>{{ invoice.customer.zip }} {{ invoice.customer.city }}<br>{{ invoice.customer.country }}</p>
+{% if invoice.customer.ico %}<p>IČO: {{ invoice.customer.ico }}</p>{% endif %}{% if invoice.customer.dic %}<p>DIČ: {{ invoice.customer.dic }}</p>{% endif %}{% if invoice.customer.vatId %}<p>IČ DPH: {{ invoice.customer.vatId }}</p>{% endif %}
+{% else %}<p class="document-empty">Odberateľ nie je vybraný</p>{% endif %}</div>
+{% if interactive %}<button type="button" class="document-customer__select" id="choose-customer" aria-label="Vybrať zákazníka"><span>Vybrať zákazníka</span></button>{% endif %}
+</td></tr></table>
+<table class="document-meta" role="presentation"><tr>
+{% for key,label in [('issueDate','Dátum vystavenia'),('deliveryDate','Dátum dodania'),('dueDate','Dátum splatnosti')] %}<td><span class="document-label">{{ label }}</span><br><b>{{ field(interactive,'date',key,label,invoice[key],invoice[key]|date,name=key,required=true) }}</b></td>{% endfor %}
+</tr></table>
+{% if interactive or invoice.orderNumber %}<div class="document-order"><span class="document-label">Objednávka: </span>{{ field(interactive,'text','orderNumber','Číslo objednávky',invoice.orderNumber,invoice.orderNumber,name='orderNumber',placeholder='Doplniť číslo objednávky…') }}</div>{% endif %}
+<table class="document-items"><thead><tr><th class="document-description" scope="col">Popis</th><th class="document-numeric document-quantity" scope="col">Množstvo</th><th class="document-unit" scope="col">MJ</th><th class="document-numeric document-price" scope="col">Cena bez DPH</th><th class="document-numeric document-tax" scope="col">DPH</th><th class="document-numeric document-line-end" scope="col">Spolu bez DPH</th></tr></thead><tbody{% if interactive %} id="invoice-items"{% endif %}>
+{% for item in invoice['items'] %}{% with i=loop.index0, lineNet=(invoice.totals.lines[loop.index0].net if loop.index0 < invoice.totals.lines|length else 0) %}{% include "document/item.html" %}{% endwith %}{% endfor %}
+</tbody></table>
+{% if interactive %}<div class="document-add"><button type="button" id="add-item" class="document-add__button">+ Pridať položku</button></div>{% endif %}
+<table class="document-summary"><thead><tr><th scope="col">DPH</th><th scope="col">Základ dane</th><th scope="col">Daň</th><th scope="col">Spolu</th></tr></thead><tbody{% if interactive %} id="vat-summary"{% endif %}>
+{% for group in invoice.totals.groups %}<tr><td>{{ group.rate }} %</td><td>{{ group.net|money }}</td><td>{{ group.vat|money }}</td><td>{{ group.gross|money }}</td></tr>{% endfor %}
+</tbody><tfoot><tr class="document-total"><td colspan="2">Celkom k úhrade</td><td colspan="2"{% if interactive %} id="total-gross"{% endif %}>{{ invoice.totals.gross|money }}</td></tr></tfoot></table>
+<table class="document-payment" role="presentation"><tr><td><p class="document-label">ÚHRADA BANKOVÝM PREVODOM · EUR</p><p class="document-iban">{{ invoice.supplier.iban|iban }}</p><p>BIC / SWIFT: {{ invoice.supplier.bic or '—' }}</p><p>Variabilný symbol: <b>{{ invoice.number or 'pridelí sa po vystavení' }}</b></p>{% if invoice.number %}<p>Správa pre príjemcu: Faktura {{ invoice.number }}</p>{% endif %}</td>
+{% for image in qrImages %}<td class="document-qr"><img class="document-qr__image" width="151" height="151" src="{{ image.dataUri }}" alt="Platobný QR: {{ image.label }}"><br><b>{{ image.label }}</b></td>{% endfor %}
+{% if not invoice.number %}{% for profile in invoice.qrProfiles %}<td class="document-qr" data-qr-placeholder><img class="document-qr__image" width="151" height="151" src="{{ qrPlaceholder }}" alt="QR po vystavení"><br><b>{{ qrLabels[profile] }}</b></td>{% endfor %}{% endif %}
+</tr></table>
+{% if qrImages or invoice.qrProfiles %}<p class="document-label" id="qr-instruction">QR kód načítajte v bankovej aplikácii, ktorá podporuje uvedený formát.</p>{% endif %}
+{% if interactive or invoice.note %}<div class="document-note">{{ field(interactive,'textarea','note','Poznámka na faktúre',invoice.note,invoice.note,name='note',maxlength=2000,placeholder='Doplniť poznámku…') }}</div>{% endif %}
+{% if invoice.supplier.registry %}<p class="document-registry">{{ invoice.supplier.registry }}</p>{% endif %}
+</div>

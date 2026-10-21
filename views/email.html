@@ -1,0 +1,19 @@
+<!doctype html><html lang="sk"><head><meta charset="utf-8"><title>{{ content.subject }}</title></head>
+<body style="margin:0;padding:24px;background:#f6f7f8;color:#243746;font:16px/1.6 Arial,sans-serif">
+<table role="presentation" style="width:100%;max-width:640px;margin:auto;background:#fff;border-collapse:collapse"><tr><td style="padding:28px">
+<p style="margin:0 0 8px;color:#17567b;font-weight:bold">{{ invoice.supplier.name }}</p>
+<h1 style="margin:0 0 24px;font-size:28px;color:#17567b">Faktúra {{ invoice.number }}</h1>
+<p style="margin:0 0 24px">{{ content.message|lines }}</p>
+<p>Odberateľ: <strong>{{ invoice.customer.name }}</strong></p>
+<table role="presentation" style="width:100%;background:#edf4f8;border-collapse:collapse"><tr><td style="padding:20px">
+<p style="margin:0;font-size:14px">Celkom k úhrade</p><p style="margin:0 0 12px;font-size:28px;color:#17567b;font-weight:bold">{{ invoice.totals.gross|money }}</p>
+<p style="margin:0">Splatnosť: <strong>{{ invoice.dueDate|date }}</strong><br>
+IBAN: <strong>{{ invoice.supplier.iban|iban }}</strong><br>
+BIC / SWIFT: {{ invoice.supplier.bic or '—' }}<br>Variabilný symbol: <strong>{{ invoice.number }}</strong><br>
+Správa pre príjemcu: Faktura {{ invoice.number }}</p>
+</td></tr></table>
+{% if images %}<p style="margin:24px 0 12px;font-weight:bold">Platba QR kódom</p>
+{% for image in images %}<div style="display:inline-block;width:180px;max-width:100%;margin:0 12px 12px 0;vertical-align:top"><img src="{{ image.src }}" width="180" height="180" alt="Platobný QR: {{ image.label }}" style="display:block;width:180px;height:auto;max-width:100%"><p style="font-size:13px;margin:8px 0">{{ image.label }}</p></div>{% endfor %}
+<p style="font-size:13px;color:#5c6b77">QR kód načítajte v bankovej aplikácii, ktorá podporuje uvedený formát. Pri platbe na rovnakom zariadení môžete použiť údaje uvedené vyššie.</p>{% endif %}
+<p style="margin:24px 0 0;font-size:14px">PDF faktúra je priamo v prílohe tohto e-mailu.</p>
+</td></tr></table></body></html>

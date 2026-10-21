@@ -28,13 +28,20 @@ const settingsBoot=JSON.parse(settingsHtml.match(/id="app-data">([\s\S]*?)<\/scr
 check((await post('settings-save',{...supplier,version:settingsBoot.supplier.version})).ok,'Synthetic supplier configured in isolated app');
 let boot;
 for(const path of ['/','/zakaznici','/nastavenia','/faktury/nova']) {
- const response=await request(path); const html=await response.text(); check(response.status===200 && html.includes('id="app-data"'),`Real Nette page ${path}`);
+ const response=await request(path); const html=await response.text(); check(response.status===200 && html.includes('id="app-data"'),`Real application page ${path}`);
  token=html.match(/name="csrf-token" content="([^"]+)"/)[1];
  if(path==='/faktury/nova') boot=JSON.parse(html.match(/<script type="application\/json" id="app-data">([\s\S]*?)<\/script>/)[1]);
 }
 const input={name:'HTTP fixture '+Date.now(),street:'Test 1',zip:'01001',city:'Žilina',country:'Slovensko',paymentDays:14,qrProfile:'epc'};
 check((await post('customer-save',input,{'X-CSRF-Token':''})).status===403,'Missing CSRF rejected');
 check((await post('customer-save',input,{'Origin':'https://evil.example'})).status===403,'Cross-origin write rejected');
+check((await post('customer-save',input,{'Sec-Fetch-Site':'cross-site'})).status===403,'Cross-site browser request rejected');
+check((await post('customer-save',input,{'Content-Type':'text/plain'})).status===415,'Wrong content type rejected');
+check((await post('customer-save',{...input,note:'x'.repeat(300001)})).status===413,'Oversized JSON rejected');
+let nested='leaf';for(let i=0;i<40;i++)nested={nested};
+check((await post('customer-save',{...input,nested})).status===422,'Excessive JSON depth rejected');
+const foreignSession=await fetch(base+'/api/customer-save',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token,Origin:base},body:JSON.stringify(input)});
+check(foreignSession.status===403,'CSRF token is bound to its own session');
 check((await request('/api/customer-save')).status===405,'GET cannot mutate');
 const customer=await post('customer-save',input); check(customer.ok,'Customer created over real HTTP');
 check((await post('customer-save',{...customer.data,name:'Updated HTTP customer'})).ok,'Customer updated over real HTTP');

@@ -3,7 +3,7 @@ import {writeFile} from 'node:fs/promises';
 import {supplier} from './fixtures.mjs';
 const base=process.env.TEST_URL || 'http://127.0.0.1:8874';
 const catcher=process.env.MAILPIT_URL || 'http://127.0.0.1:8026';
-if(!base.endsWith(':8874') || catcher!=='http://127.0.0.1:8026') throw new Error('Only isolated invoice and Mailpit ports are allowed.');
+if(!base.endsWith(':8874') || !['http://127.0.0.1:8026','http://127.0.0.1:8029'].includes(catcher)) throw new Error('Only isolated invoice and Mailpit ports are allowed.');
 let cookies=new Map(),token,checks=0;
 const check=(yes,label)=>{assert.ok(yes,label);console.log('PASS '+label);checks++;};
 async function get(path) {

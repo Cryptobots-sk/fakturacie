@@ -1,4 +1,4 @@
-/* Shared document rules: browser editor and mPDF. Physical dimensions are intentional. */
+/* Shared document rules: browser editor and Chromium PDF. Physical dimensions are intentional. */
 .invoice-document { color:#243746; font-family:dejavusans, sans-serif; font-size:9pt; line-height:1.5; }
 .document-title { font-size:25pt; color:#17567b; margin:0 0 5mm; font-weight:bold; line-height:1.2; }
 .document-company { font-size:12pt; margin:0 0 2mm; font-weight:bold; line-height:1.25; }

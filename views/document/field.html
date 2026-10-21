@@ -1,0 +1,10 @@
+{% macro field(interactive, type, id, label, value, display, name=none, itemField=none, placeholder='', required=false, maxlength=none) -%}
+{% if interactive %}
+<span class="document-editable {% if type == 'textarea' %}document-editable--multiline{% endif %}">
+<span class="document-editable__value" aria-hidden="true" data-display>{{ display if display != '' else (placeholder or 'Doplniť…') }}</span>
+{% if type == 'textarea' %}<textarea class="document-editable__input" id="{{ id }}"{% if name %} name="{{ name }}"{% endif %}{% if itemField %} data-field="{{ itemField }}"{% endif %} aria-label="{{ label }}" maxlength="{{ maxlength or 1000 }}" rows="1" placeholder="{{ placeholder }}"{% if required %} required{% endif %}>{{ value }}</textarea>
+{% elif type == 'select' %}<select class="document-editable__input" id="{{ id }}" data-field="{{ itemField }}" aria-label="{{ label }}">{% for rate in [0,5,19,23] %}<option value="{{ rate }}"{% if rate == value|int %} selected{% endif %}>{{ rate }} %</option>{% endfor %}</select>
+{% else %}<input class="document-editable__input" id="{{ id }}"{% if name %} name="{{ name }}"{% endif %}{% if itemField %} data-field="{{ itemField }}"{% endif %} aria-label="{{ label }}" type="{{ 'date' if type == 'date' else 'text' }}"{% if type == 'decimal' %} inputmode="decimal"{% endif %} maxlength="{{ maxlength or 80 }}" value="{{ value }}"{% if required %} required{% endif %}>{% endif %}
+</span>
+{% else %}{{ display|lines }}{% endif %}
+{%- endmacro %}

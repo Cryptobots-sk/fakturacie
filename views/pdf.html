@@ -1,0 +1,13 @@
+<!doctype html><html lang="sk"><head><meta charset="utf-8"><title>{{ title }}</title>
+<meta name="author" content="{{ invoice.supplier.name }}">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src file:;">
+<style>
+@font-face {font-family:dejavusans;src:url('file://{{ fontPath }}/invoice-regular.ttf') format('truetype');font-weight:normal;}
+@font-face {font-family:dejavusans;src:url('file://{{ fontPath }}/invoice-bold.ttf') format('truetype');font-weight:bold;}
+html,body {margin:0;padding:0;font-family:dejavusans,sans-serif;font-size:9pt;}
+{{ documentCss|safe }}
+thead {display:table-header-group;}
+tr {break-inside:avoid;}
+.document-parties,.document-meta,.document-summary,.document-payment {break-inside:avoid;}
+.document-note {white-space:normal;}
+</style></head><body>{% include "document/invoice.html" %}</body></html>

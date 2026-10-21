@@ -2,16 +2,17 @@ name: fakturacie
 services:
   app:
     image: fakturacie:local
-    build: # PHP 8.5 + Apache; základ obrazu je v Dockerfile.
+    build: # Rust server + Chromium pre PDF; všetko v Dockerfile.
       context: .
       target: runtime
     restart: unless-stopped
+    init: true
     ports:
-      - "127.0.0.1:${FAKTURACIE_PORT:-8873}:80"
+      - "127.0.0.1:${FAKTURACIE_PORT:-8873}:8080"
     volumes:
       - data:/var/www/html/data
     healthcheck:
-      test: ["CMD", "php", "/var/www/html/docker/healthcheck.php"]
+      test: ["CMD", "fakturacie", "--healthcheck"]
       interval: 30s
       timeout: 10s
       start_period: 15s

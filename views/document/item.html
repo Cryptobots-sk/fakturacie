@@ -1,0 +1,9 @@
+{% from "document/field.html" import field %}
+<tr class="invoice-item">
+<td class="document-description">{{ field(interactive, 'textarea', 'item-' ~ i ~ '-description', 'Popis položky, položka ' ~ (i+1), item.description, item.description, itemField='description', required=true, placeholder='Za čo fakturuješ?') }}</td>
+<td class="document-numeric">{{ field(interactive, 'decimal', 'item-' ~ i ~ '-quantity', 'Množstvo, položka ' ~ (i+1), item.quantity, item.quantity|quantity, itemField='quantity', required=true) }}</td>
+<td>{{ field(interactive, 'text', 'item-' ~ i ~ '-unit', 'MJ, položka ' ~ (i+1), item.unit, item.unit, itemField='unit', required=true, maxlength=12) }}</td>
+<td class="document-numeric">{{ field(interactive, 'decimal', 'item-' ~ i ~ '-unitPrice', 'Cena bez DPH, položka ' ~ (i+1), item.unitPrice, item.unitPrice|price, itemField='unitPrice', required=true) }}</td>
+<td class="document-numeric">{{ field(interactive, 'select', 'item-' ~ i ~ '-vatRate', 'DPH %, položka ' ~ (i+1), item.vatRate, item.vatRate ~ ' %', itemField='vatRate') }}</td>
+<td class="document-numeric document-line-end"><span data-line-total>{{ lineNet|money }}</span>{% if interactive %}<button type="button" class="document-remove invoice-item__remove" aria-label="Odstrániť položku {{ i+1 }}">×</button>{% endif %}</td>
+</tr>

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1, archived INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS sequences (year INTEGER PRIMARY KEY, last_number INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS invoices (id INTEGER PRIMARY KEY AUTOINCREMENT, client_key TEXT NOT NULL UNIQUE, number TEXT UNIQUE, status TEXT NOT NULL CHECK(status IN ('draft','issued')), data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, pdf BLOB);
+CREATE TABLE IF NOT EXISTS smtp_settings (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS email_deliveries (id INTEGER PRIMARY KEY AUTOINCREMENT, request_key TEXT NOT NULL UNIQUE, payload_hash TEXT NOT NULL, invoice_id INTEGER, invoice_version INTEGER, recipient TEXT NOT NULL, subject TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('sending','sent','unknown')), pdf_sha256 TEXT, created_at TEXT NOT NULL, finished_at TEXT);
+CREATE INDEX IF NOT EXISTS email_deliveries_invoice ON email_deliveries(invoice_id,id);

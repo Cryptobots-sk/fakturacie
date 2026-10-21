@@ -1,6 +1,0 @@
-parameters:
-    level: 5
-    paths:
-        - app
-        - bin/setup.php
-    tmpDir: temp/phpstan
